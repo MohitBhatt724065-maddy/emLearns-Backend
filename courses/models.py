@@ -38,6 +38,11 @@ class Lesson(models.Model):
     video_url = models.URLField(blank=True)
     is_published = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(
+    upload_to="lessons/",
+    blank=True,
+    null=True
+   )
 
     class Meta:
         ordering = ["order"]
