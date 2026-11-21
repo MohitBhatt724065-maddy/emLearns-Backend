@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password as validate_django_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from rest_framework import serializers
 
@@ -101,3 +102,27 @@ class RegistrationSerializer(serializers.ModelSerializer):
         )
 
         return user
+
+class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        identifier = attrs.get(self.username_field, "")
+        if "@" in identifier:
+            user = User.objects.filter(email__iexact=identifier).first()
+            if user:
+                attrs[self.username_field] = user.get_username()
+        return super().validate(attrs)
+
+
+class MeSerializer(serializers.ModelSerializer):
+    institution = serializers.CharField(source="student_profile.institution", read_only=True)
+    academic_level = serializers.CharField(source="student_profile.academic_level", read_only=True)
+    bio = serializers.CharField(source="student_profile.bio", read_only=True)
+    profile_picture = serializers.ImageField(source="student_profile.profile_picture", read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "email", "first_name", "last_name",
+            "institution", "academic_level", "bio", "profile_picture",
+            "date_joined",
+        ]
