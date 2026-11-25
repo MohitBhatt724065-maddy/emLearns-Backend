@@ -82,6 +82,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     total_lessons = serializers.SerializerMethodField()
     completed_lessons = serializers.SerializerMethodField()
     progress_percent = serializers.SerializerMethodField()
+    next_lesson_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Enrollment
@@ -112,3 +113,21 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         if total == 0:
             return 0
         return round(self.get_completed_lessons(obj) / total * 100)
+    
+        def get_next_lesson_id(self, obj):
+         done_ids = LessonProgress.objects.filter(
+            user=obj.user,
+            completed=True,
+            lesson__module__course=obj.course,
+        ).values_list("lesson_id", flat=True)
+
+        lesson = (
+            Lesson.objects.filter(
+                module__course=obj.course,
+                is_published=True,
+            )
+            .exclude(id__in=done_ids)
+            .order_by("module__order", "order")
+            .first()
+        )
+        return lesson.id if lesson else None
