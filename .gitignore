@@ -4,3 +4,5 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 *.log
+# User uploads (images, profile pictures)
+media/

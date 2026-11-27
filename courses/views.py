@@ -167,6 +167,7 @@ def course_progress(request, pk):
         LessonProgress.objects.filter(
             user=request.user,
             lesson__module__course=course,
+            lesson__is_published=True, 
             completed=True,
         ).values_list("lesson_id", flat=True)
     )
